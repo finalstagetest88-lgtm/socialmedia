@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dailyvids"
+version = "0.1.0"
+description = "Automated daily short-video posting CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "DailyVids" }]
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+dailyvids = "dailyvids.cli:main"
+
