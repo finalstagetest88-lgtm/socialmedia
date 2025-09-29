@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DailyVids Local Mixer</title>
+    <style>
+      body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: #0b0e14; color: #e6e6e6; margin: 0; }
+      .container { max-width: 720px; margin: 0 auto; padding: 24px; }
+      h1 { margin: 0 0 16px; }
+      section { background: #121826; border: 1px solid #1f2937; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+      button { background: #2563eb; color: #fff; border: 0; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+      input[type="file"] { color: #e6e6e6; }
+      #preview { width: 100%; max-height: 60vh; display: none; margin-top: 12px; background: #000; }
+      #download { display: none; margin-top: 12px; }
+      pre { max-height: 200px; overflow: auto; font-size: 12px; background: #0f172a; padding: 8px; border-radius: 6px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>DailyVids Local Mixer</h1>
+
+      <section>
+        <p>Runs entirely in your browser. Pick a video and an audio track, then Generate.</p>
+        <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+          <input type="file" id="video" accept="video/*" />
+          <input type="file" id="audio" accept="audio/*" />
+          <button id="generate">Generate</button>
+        </div>
+      </section>
+
+      <section>
+        <video id="preview" controls></video>
+        <div>
+          <a id="download" download="output.mp4">Download output.mp4</a>
+        </div>
+      </section>
+
+      <section>
+        <h3>Log</h3>
+        <pre id="log"></pre>
+      </section>
+    </div>
+
+    <script>
+      (async function () {
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({
+          log: true,
+          corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js'
+        });
+        const logEl = document.getElementById('log');
+        ffmpeg.setLogger(({ message }) => { logEl.textContent += message + '\n'; });
+
+        logEl.textContent += 'Loading ffmpeg core...\n';
+        await ffmpeg.load();
+        logEl.textContent += 'ffmpeg ready.\n';
+
+        document.getElementById('generate').onclick = async () => {
+          try {
+            const vFile = document.getElementById('video').files[0];
+            const aFile = document.getElementById('audio').files[0];
+            if (!vFile || !aFile) { alert('Select both a video and an audio file.'); return; }
+
+            const vExt = (vFile.name.split('.').pop() || 'mp4');
+            const aExt = (aFile.name.split('.').pop() || 'mp3');
+            const vName = `input.${vExt}`;
+            const aName = `audio.${aExt}`;
+
+            logEl.textContent += 'Writing files to virtual FS...\n';
+            ffmpeg.FS('writeFile', vName, await fetchFile(vFile));
+            ffmpeg.FS('writeFile', aName, await fetchFile(aFile));
+
+            const out = 'output.mp4';
+            logEl.textContent += 'Running ffmpeg...\n';
+            await ffmpeg.run(
+              '-i', vName,
+              '-i', aName,
+              '-map', '0:v:0',
+              '-map', '1:a:0',
+              '-c:v', 'libx264',
+              '-vf', 'scale=1080:-2,format=yuv420p',
+              '-c:a', 'aac',
+              '-shortest',
+              out
+            );
+            logEl.textContent += 'Render complete.\n';
+
+            const data = ffmpeg.FS('readFile', out);
+            const blob = new Blob([data.buffer], { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+
+            const preview = document.getElementById('preview');
+            preview.src = url;
+            preview.style.display = 'block';
+
+            const dl = document.getElementById('download');
+            dl.href = url;
+            dl.style.display = 'inline-block';
+          } catch (e) {
+            logEl.textContent += `Error: ${e}\n`;
+            alert('Generation failed. Check the log.');
+          }
+        };
+      })();
+    </script>
+  </body>
+  
+</html>
+
