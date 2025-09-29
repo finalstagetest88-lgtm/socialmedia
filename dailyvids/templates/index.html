@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DailyVids Web</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>DailyVids</h1>
+
+      <section>
+        <h2>Upload Video</h2>
+        <form action="/upload/video" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept="video/*" required />
+          <button type="submit">Upload</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Upload Music</h2>
+        <form action="/upload/audio" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept="audio/*" required />
+          <button type="submit">Upload</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Generate Random Video</h2>
+        <form action="/generate" method="post">
+          <button type="submit">Generate</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Latest Output</h2>
+        <p>Generated files will be available under /generated/...</p>
+      </section>
+    </div>
+  </body>
+  
+</html>
+

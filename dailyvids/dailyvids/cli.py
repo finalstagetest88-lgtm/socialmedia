@@ -12,6 +12,7 @@ from .ingest import ingest_directory
 from .scheduler import pick_next_unposted
 from .publishers.console import ConsolePublisher
 from .captions import generate_caption
+from .server import run as run_server
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,6 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_post = sub.add_parser("post-once", help="Post one video via console publisher")
     p_post.add_argument("--db", default=str(Path("dailyvids.sqlite3")), help="DB path")
+
+    p_serve = sub.add_parser("serve", help="Run the web UI server")
+    p_serve.add_argument("--host", default="0.0.0.0")
+    p_serve.add_argument("--port", type=int, default=8000)
+    p_serve.add_argument("--db", default=str(Path("dailyvids.sqlite3")))
 
     return parser
 
@@ -96,6 +102,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_next(args.db)
     if args.command == "post-once":
         return cmd_post_once(args.config, args.db)
+    if args.command == "serve":
+        db_path = Path(args.db)
+        db = Database(db_path)
+        db.init()
+        run_server(args.host, args.port, Path(__file__).resolve().parent.parent, db)
+        return 0
     parser.print_help()
     return 0
 
