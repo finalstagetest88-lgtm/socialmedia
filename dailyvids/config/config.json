@@ -1,0 +1,13 @@
+{
+  "storage": {
+    "db_path": "dailyvids.sqlite3"
+  },
+  "posting": {
+    "daily_time": "09:00",
+    "timezone": "UTC"
+  },
+  "publishers": {
+    "console": true
+  }
+}
+
