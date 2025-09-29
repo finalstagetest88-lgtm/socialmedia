@@ -1,1 +1,3 @@
 new file 3d
+cd /workspace/dailyvids
+/usr/bin/python3 -m dailyvids.cli serve --host 127.0.0.1 --port 8000 --db /workspace/dailyvids/dailyvids.sqlite
